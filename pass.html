@@ -318,22 +318,12 @@
   </div>
 
   <script>
-    // ── CONFIG: put each person's Pass2U download URL here ──────────────
-    // This page is generic — the pass URL comes from the query string:
-    //   pass.html?url=https://www.pass2u.net/d/XXXX
-    //
-    // Your Python script will generate one link per person like:
-    //   https://yoursite.com/pass.html?url=https://www.pass2u.net/d/VT-XXXXX
-    // ─────────────────────────────────────────────────────────────────────
+    // Hardcoded by Python for each person
+    const passURL = "%%PASS_URL%%";
 
-    const params  = new URLSearchParams(window.location.search);
-    const passURL = params.get('url') || params.get('pass') || '';
-
-    // ── Browser detection ────────────────────────────────────────────────
-    const ua        = navigator.userAgent;
-    const isIOS     = /iP(hone|ad|od)/.test(ua);
-    const isSafari  = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS|GSA/.test(ua);
-    const isChrome  = /CriOS/.test(ua);  // Chrome on iOS
+    const ua       = navigator.userAgent;
+    const isIOS    = /iP(hone|ad|od)/.test(ua);
+    const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS|GSA/.test(ua);
 
     const cardChrome = document.getElementById('card-chrome');
     const cardSafari = document.getElementById('card-safari');
@@ -341,36 +331,20 @@
     const safariBtn  = document.getElementById('open-safari-btn');
     const tryBtn     = document.getElementById('try-anyway-btn');
 
-    // Set the pass URL on all buttons
-    if (passURL) {
-      addBtn.href    = passURL;
-      tryBtn.href    = passURL;
-      // Open in Safari trick: x-web-search:// doesn't work reliably,
-      // best method is the clipboard + instruction, but the cleanest
-      // universal trick is using the x-safari-https:// scheme on iOS
-      const safariURL = passURL.replace(/^https?:\/\//, 'x-safari-https://');
-      safariBtn.href  = safariURL;
-    } else {
-      // No URL passed — show a helpful message
-      document.querySelector('.subtitle').textContent = 'No pass URL provided. Check your link.';
-    }
+    // x-safari-https:// scheme forces iOS to open URL in Safari
+    const safariURL  = passURL.replace(/^https:\/\//, 'x-safari-https://');
 
-    // ── Show correct card ────────────────────────────────────────────────
+    addBtn.href    = passURL;
+    safariBtn.href = safariURL;
+    tryBtn.href    = passURL;
+
     if (isSafari || !isIOS) {
-      // On Safari or desktop — show the simple Add to Wallet card
       cardChrome.classList.add('hidden');
       cardSafari.classList.remove('hidden');
     } else {
-      // On Chrome/Firefox/etc on iOS — show the warning
       cardChrome.classList.remove('hidden');
       cardSafari.classList.add('hidden');
     }
-
-    // ── "Try anyway" fallback ────────────────────────────────────────────
-    tryBtn.addEventListener('click', function(e) {
-      if (!passURL) { e.preventDefault(); return; }
-      // Try to trigger the pkpass directly
-    });
   </script>
 </body>
 </html>
