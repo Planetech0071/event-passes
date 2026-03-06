@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add to Apple Wallet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f3ee;
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --red: #d94f3d;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* ── Background accent ── */
+    .bg-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ── Wallet icon ── */
+    .wallet-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 2rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+
+    /* ── Heading ── */
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 8vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.2s;
+    }
+
+    h1 span {
+      color: var(--gold);
+    }
+
+    .subtitle {
+      margin-top: 1rem;
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: rgba(245,243,238,0.55);
+      max-width: 320px;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.35s;
+    }
+
+    /* ── Card ── */
+    .card {
+      margin-top: 2.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 2rem 2rem;
+      width: 100%;
+      max-width: 360px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.5s;
+    }
+
+    /* ── Safari warning state ── */
+    .warning-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--white);
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: rgba(245,243,238,0.5);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-safari {
+      background: linear-gradient(135deg, #1d6ff5, #0a4fcb);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(29,111,245,0.35);
+    }
+
+    .btn-wallet {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--black);
+      box-shadow: 0 4px 24px rgba(201,168,76,0.4);
+    }
+
+    .btn-wallet:hover { opacity: 0.92; }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 0.88rem;
+      color: rgba(245,243,238,0.65);
+      line-height: 1.5;
+    }
+
+    .step-text strong {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    /* ── Footer note ── */
+    .footer-note {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: rgba(245,243,238,0.25);
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.7s;
+    }
+
+    /* ── Success state ── */
+    .success-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1rem 0;
+      color: rgba(245,243,238,0.2);
+      font-size: 0.75rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <div class="container">
+
+    <!-- Wallet SVG icon -->
+    <svg class="wallet-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="20" width="64" height="44" rx="10" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>
+      <rect x="8" y="30" width="64" height="10" fill="rgba(201,168,76,0.2)"/>
+      <rect x="48" y="40" width="18" height="14" rx="4" fill="rgba(201,168,76,0.4)" stroke="rgba(201,168,76,0.7)" stroke-width="1.2"/>
+      <circle cx="57" cy="47" r="3" fill="var(--gold)"/>
+    </svg>
+
+    <h1>Your <span>Event Pass</span><br/>is ready</h1>
+    <p class="subtitle">Tap below to add your ticket directly to Apple Wallet</p>
+
+    <!-- ══ CARD: Chrome/non-Safari warning ══ -->
+    <div class="card" id="card-chrome">
+      <div class="warning-icon">⚠️</div>
+      <h2>Open in Safari first</h2>
+      <p>Chrome can't add passes to Apple Wallet. You need to open this page in Safari — it takes 5 seconds.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">Tap the button below — it will open this page in <strong>Safari</strong></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">Tap <strong>"Add to Wallet"</strong> on the next screen</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">Done — your pass is in <strong>Apple Wallet</strong> 🎉</div>
+        </div>
+      </div>
+
+      <a class="btn btn-safari" id="open-safari-btn" href="#">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        Open in Safari
+      </a>
+
+      <div class="divider">or</div>
+
+      <a class="btn btn-wallet" id="try-anyway-btn" href="#">
+        Try adding anyway
+      </a>
+    </div>
+
+    <!-- ══ CARD: Safari — just show Add to Wallet ══ -->
+    <div class="card hidden" id="card-safari">
+      <div class="success-icon">🎟️</div>
+      <h2>You're good to go!</h2>
+      <p>Tap the button below to add your pass to Apple Wallet.</p>
+      <a class="btn btn-wallet" id="add-wallet-btn" href="#">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="3"/>
+          <path d="M16 12h.01"/>
+        </svg>
+        Add to Apple Wallet
+      </a>
+    </div>
+
+    <p class="footer-note">Requires iPhone with Apple Wallet · iOS 9+</p>
+  </div>
+
+  <script>
+    // ── CONFIG: put each person's Pass2U download URL here ──────────────
+    // This page is generic — the pass URL comes from the query string:
+    //   pass.html?url=https://www.pass2u.net/d/XXXX
+    //
+    // Your Python script will generate one link per person like:
+    //   https://yoursite.com/pass.html?url=https://www.pass2u.net/d/VT-XXXXX
+    // ─────────────────────────────────────────────────────────────────────
+
+    const params  = new URLSearchParams(window.location.search);
+    const passURL = params.get('url') || params.get('pass') || '';
+
+    // ── Browser detection ────────────────────────────────────────────────
+    const ua        = navigator.userAgent;
+    const isIOS     = /iP(hone|ad|od)/.test(ua);
+    const isSafari  = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS|GSA/.test(ua);
+    const isChrome  = /CriOS/.test(ua);  // Chrome on iOS
+
+    const cardChrome = document.getElementById('card-chrome');
+    const cardSafari = document.getElementById('card-safari');
+    const addBtn     = document.getElementById('add-wallet-btn');
+    const safariBtn  = document.getElementById('open-safari-btn');
+    const tryBtn     = document.getElementById('try-anyway-btn');
+
+    // Set the pass URL on all buttons
+    if (passURL) {
+      addBtn.href    = passURL;
+      tryBtn.href    = passURL;
+      // Open in Safari trick: x-web-search:// doesn't work reliably,
+      // best method is the clipboard + instruction, but the cleanest
+      // universal trick is using the x-safari-https:// scheme on iOS
+      const safariURL = passURL.replace(/^https?:\/\//, 'x-safari-https://');
+      safariBtn.href  = safariURL;
+    } else {
+      // No URL passed — show a helpful message
+      document.querySelector('.subtitle').textContent = 'No pass URL provided. Check your link.';
+    }
+
+    // ── Show correct card ────────────────────────────────────────────────
+    if (isSafari || !isIOS) {
+      // On Safari or desktop — show the simple Add to Wallet card
+      cardChrome.classList.add('hidden');
+      cardSafari.classList.remove('hidden');
+    } else {
+      // On Chrome/Firefox/etc on iOS — show the warning
+      cardChrome.classList.remove('hidden');
+      cardSafari.classList.add('hidden');
+    }
+
+    // ── "Try anyway" fallback ────────────────────────────────────────────
+    tryBtn.addEventListener('click', function(e) {
+      if (!passURL) { e.preventDefault(); return; }
+      // Try to trigger the pkpass directly
+    });
+  </script>
+</body>
+</html>
