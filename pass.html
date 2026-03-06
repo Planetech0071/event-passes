@@ -17,11 +17,11 @@
     }
 
     html, body {
-      height: 100%;
+      min-height: 100%;
       background: var(--black);
       color: var(--white);
       font-family: 'DM Sans', sans-serif;
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     /* ── Grain overlay ── */
@@ -318,8 +318,12 @@
   </div>
 
   <script>
-    // Hardcoded by Python for each person
-    const passURL = "%%PASS_URL%%";
+    // Read pass URL from ?url= query parameter
+    const params  = new URLSearchParams(window.location.search);
+    const passURL = params.get('url') || '';
+    if (!passURL) {
+      document.querySelector('.subtitle').textContent = 'No pass URL found. Check your link.';
+    }
 
     const ua       = navigator.userAgent;
     const isIOS    = /iP(hone|ad|od)/.test(ua);
