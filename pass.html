@@ -114,7 +114,13 @@
     const cardSafari = document.getElementById('card-safari');
     const heading    = document.getElementById('heading');
 
-    if (!personName || !passURL) {
+    // Debug: log what we got so you can check in browser console
+    console.log('name param:', personName);
+    console.log('url param:', passURL);
+
+    if (!personName || !passURL || passURL.trim() === '') {
+      // Show the raw query string in console for debugging
+      console.log('Full search string:', window.location.search);
       cardError.classList.remove('hidden');
     } else {
       // Personalised greeting — underscores become spaces
