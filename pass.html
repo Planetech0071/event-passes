@@ -102,28 +102,23 @@
   </div>
 
   <script>
-    // ─────────────────────────────────────────────────────────────────────
-    // Read ?pass=Leonardo_Monforte from the URL.
-    // The .pkpass file lives in the /passes/ subfolder of this same repo.
-    // ─────────────────────────────────────────────────────────────────────
-    const params   = new URLSearchParams(window.location.search);
-    const passName = params.get('pass');   // e.g. "Leonardo_Monforte"
+    // Reads two query params:
+    //   ?name=Leonardo_Monforte   → personalised greeting
+    //   &url=https://www.pass2u.net/d/xxx  → Pass2U download link
+    const params      = new URLSearchParams(window.location.search);
+    const personName  = params.get('name');
+    const passURL     = params.get('url');
 
     const cardError  = document.getElementById('card-error');
     const cardChrome = document.getElementById('card-chrome');
     const cardSafari = document.getElementById('card-safari');
     const heading    = document.getElementById('heading');
 
-    if (!passName) {
-      // No ?pass= param → show error
+    if (!personName || !passURL) {
       cardError.classList.remove('hidden');
     } else {
-      // Build the .pkpass URL relative to this page's location
-      const base     = window.location.href.split('?')[0].replace('pass.html', '');
-      const pkpassURL = base + 'passes/' + passName + '.pkpass';
-
-      // Personalise the heading with a human-readable name
-      const displayName = passName.replace(/_/g, ' ');
+      // Personalised greeting — underscores become spaces
+      const displayName = personName.replace(/_/g, ' ');
       heading.innerHTML = 'Hey, <span>' + displayName + '</span>!<br/>Your pass is ready';
 
       // Browser detection
@@ -131,11 +126,12 @@
       const isIOS    = /iP(hone|ad|od)/.test(ua);
       const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS|GSA/.test(ua);
 
-      // Wire up buttons
-      document.getElementById('wallet-btn').href = pkpassURL;
-      document.getElementById('try-btn').href    = pkpassURL;
+      // Wire up buttons — all point to the Pass2U link
+      document.getElementById('wallet-btn').href = passURL;
+      document.getElementById('try-btn').href    = passURL;
 
-      // "Open in Safari" — x-safari-https:// reopens current URL in Safari
+      // "Open in Safari" — x-safari-https:// relaunches THIS page in Safari
+      // so the user lands back here and can then tap Add to Wallet
       const safariURL = window.location.href.replace(/^https:\/\//, 'x-safari-https://');
       document.getElementById('safari-btn').href = safariURL;
 
